@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Documentation Viewer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-color: #6366f1;
+            --background-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: var(--primary-gradient);
+            backdrop-filter: blur(10px);
+            border: none;
+            box-shadow: var(--shadow-lg);
+            padding: 1rem 0;
+            position: static;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+        }
+
+        .navbar-brand {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            margin-top: 0;
+            padding: 1rem;
+            height: 100vh; /* Full viewport height */
+            max-width: 100%;
+        }
+
+        .content-row {
+            height: 100%;
+        }
+
+        .filter-column {
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .pdf-column {
+            height: 100%;
+            padding-left: 1rem;
+        }
+
+        .filter-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-floating > .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 0.75rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+            background: var(--card-bg);
+        }
+
+        .form-floating > label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Modern Floating Dropdown for Manufacturers */
+        .manufacturer-dropdown {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .manufacturer-trigger {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .manufacturer-trigger:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .manufacturer-trigger.active {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        }
+
+        .manufacturer-trigger .icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .manufacturer-trigger.active .icon {
+            transform: rotate(180deg);
+            color: var(--accent-color);
+        }
+
+        .manufacturer-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .manufacturer-dropdown-menu.show {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .manufacturer-search {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 10;
+        }
+
+        .manufacturer-search input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .manufacturer-search input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .manufacturer-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .manufacturer-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+
+        .manufacturer-item:hover {
+            background: #f1f5f9;
+        }
+
+        .manufacturer-item.selected {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-color);
+        }
+
+        .manufacturer-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
+        }
+
+        .select-all-section {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+
+        .select-all-item {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .select-all-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
+        }
+
+        .selected-count {
+            background: var(--accent-color);
+            color: white;
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .btn-modern {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .btn-modern:disabled {
+            background: var(--text-secondary);
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-success-modern {
+            background: var(--secondary-gradient);
+        }
+
+        .pdf-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            height: 100%;
+            border: 1px solid var(--border-color);
+        }
+
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notification styles (disabled)
+        .alert-modern {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-success-modern {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+
+        .alert-info-modern {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-warning-modern {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+        */
+
+        /* Scrollbar Styling */
+        .manufacturer-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .manufacturer-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .manufacturer-list::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .manufacturer-list::-webkit-scrollbar-thumb:hover {
+            background: #5855eb;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0.5rem;
+                margin-top: 0;
+                height: 100vh;
+            }
+            
+            .filter-column {
+                padding-right: 0;
+                margin-bottom: 1rem;
+                height: auto; /* Allow natural height on mobile */
+            }
+            
+            .pdf-column {
+                padding-left: 0;
+                height: 60vh; /* Fixed height for PDF on mobile */
+            }
+            
+            .filter-card {
+                padding: 1.5rem;
+                border-radius: 16px;
+                margin-bottom: 1rem;
+            }
+            
+            .pdf-container {
+                height: 100%; /* Use full available height */
+            }
+            
+            .navbar {
+                padding: 0.5rem 0;
+                border-radius: 16px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            /* Ensure version dropdown doesn't overflow on mobile */
+            .version-dropdown-menu.show {
+                max-height: 250px;
+            }
+            
+            .version-list {
+                max-height: 150px;
+            }
+        }
+
+        /* Manufacturer Sort Toggle */
+        .manufacturer-sort-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sort-toggle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .sort-toggle-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .sort-toggle-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .sort-toggle-buttons .btn {
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sort-toggle-buttons .btn-check:checked + .btn {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .manufacturer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .manufacturer-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .manufacturer-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Manufacturer Selection View */
+        .manufacturer-selection-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .manufacturer-selection-header h4 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .manufacturer-grid-container {
+            height: calc(100% - 80px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .manufacturer-search-bar {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--card-bg);
+        }
+
+        .manufacturer-search-bar input {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+        }
+
+        .manufacturer-grid {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            background: #f8fafc;
+        }
+
+        .manufacturer-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .manufacturer-card:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .manufacturer-card.selected {
+            border-color: var(--accent-color);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+            box-shadow: var(--shadow-lg);
+        }
+
+        .manufacturer-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .manufacturer-card-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.3;
+            flex: 1;
+            margin-right: 0.5rem;
+        }
+
+        .manufacturer-card-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .manufacturer-card-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .manufacturer-card-date {
+            font-style: italic;
+        }
+
+        .selected-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .manufacturer-card.selected .selected-badge {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Floating Version Dropdown */
+        .version-dropdown {
+            position: relative;
+            margin-bottom: 1.5rem;
+            z-index: 1001;
+        }
+
+        .version-trigger {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: var(--text-primary);
+            position: relative;
+            z-index: 1002;
+        }
+
+        .version-trigger:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .version-trigger.active {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        }
+
+        .version-trigger .icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .version-trigger.active .icon {
+            transform: rotate(180deg);
+            color: var(--accent-color);
+        }
+
+        .version-dropdown-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1003;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .version-dropdown-menu.show {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .version-search {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 10;
+        }
+
+        .version-search input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .version-search input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .version-list {
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 0.25rem;
+        }
+
+        .version-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            border: 1px solid transparent;
+            margin-bottom: 0.125rem;
+            pointer-events: auto;
+            position: relative;
+            z-index: 1004;
+        }
+
+        .version-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent-color);
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .version-item.selected {
+            background: var(--accent-color);
+            color: white;
+            border-color: #5855eb;
+        }
+
+        .version-item-name {
+            font-weight: 400;
+            margin-bottom: 0;
+            color: inherit;
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+
+        .version-item-details {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            color: inherit;
+            font-weight: 500;
+        }
+
+        /* Year Dropdown (Consistent with Version Dropdown) */
+        .year-dropdown {
+            position: relative;
+            margin-bottom: 1.5rem;
+            z-index: 1001;
+        }
+
+        .year-trigger {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: var(--text-primary);
+            position: relative;
+            z-index: 1002;
+        }
+
+        .year-trigger:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .year-trigger.active {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        }
+
+        .year-trigger .icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .year-trigger.active .icon {
+            transform: rotate(180deg);
+            color: var(--accent-color);
+        }
+
+        .year-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1003;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .year-dropdown-menu.show {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .year-search {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 10;
+        }
+
+        .year-search input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .year-search input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .year-list {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 0.25rem;
+        }
+
+        .year-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            border: 1px solid transparent;
+            margin-bottom: 0.125rem;
+            pointer-events: auto;
+            position: relative;
+            z-index: 1004;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .year-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent-color);
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .year-item.selected {
+            background: var(--accent-color);
+            color: white;
+            border-color: #5855eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="row content-row">
+            <!-- Filters Column -->
+            <div class="col-lg-4 filter-column">
+                <!-- Navigation Bar (Only in Filter Column) -->
+                <nav class="navbar navbar-expand-lg mb-3">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">
+                            <i class="fas fa-car me-2"></i>
+                            Vehicle Documentation Viewer
+                        </a>
+                    </div>
+                </nav>
+
+                <div class="filter-card">
+                    <h3 class="filter-title">
+                        <i class="fas fa-filter"></i>
+                        Filter Options
+                    </h3>
+                    
+                    <!-- Year Selection -->
+                    <div class="year-dropdown">
+                        <div class="year-trigger" id="yearTrigger">
+                            <span id="yearText">Choose a year...</span>
+                            <i class="fas fa-chevron-down icon"></i>
+                        </div>
+                        
+                        <div class="year-dropdown-menu" id="yearDropdown">
+                            <div class="year-search">
+                                <input type="text" id="yearSearch" placeholder="Search years...">
+                            </div>
+                            
+                            <div class="year-list" id="yearList">
+                                {% for year in years %}
+                                <div class="year-item" data-year="{{ year }}">{{ year }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manufacturer Sort Toggle (Initially Hidden) -->
+                    <div class="manufacturer-sort-section d-none" id="manufacturerSortSection">
+                        <div class="sort-toggle-container">
+                            <label class="sort-toggle-label">
+                                <i class="fas fa-sort me-2"></i>Sort Manufacturers By:
+                            </label>
+                            <div class="sort-toggle-buttons">
+                                <input type="radio" class="btn-check" name="sortOption" id="sortByName" value="name">
+                                <label class="btn btn-outline-primary btn-sm" for="sortByName">
+                                    <i class="fas fa-sort-alpha-down me-1"></i>Name
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="sortOption" id="sortByDate" value="date" checked>
+                                <label class="btn btn-outline-primary btn-sm" for="sortByDate">
+                                    <i class="fas fa-clock me-1"></i>Recent Date
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Manufacturers Summary -->
+                    <div class="d-none" id="selectedManufacturersSummary">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="selectedMfgText">No manufacturers selected</span>
+                        </div>
+                    </div>
+
+                    <!-- Back to Manufacturers Button (Before Version Selection) -->
+                    <div class="d-none" id="backToManufacturersBeforeVersion">
+                        <div class="d-grid mb-3">
+                            <button id="backToManufacturersBeforeVersionBtn" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Manufacturers
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Floating Version Dropdown (Initially Hidden) -->
+                    <div class="version-dropdown d-none" id="versionDropdownSection">
+                        <div class="version-trigger" id="versionTrigger">
+                            <span id="versionText">Select Version</span>
+                            <i class="fas fa-chevron-down icon"></i>
+                        </div>
+                        
+                        <div class="version-dropdown-menu" id="versionDropdown">
+                            <div class="version-search">
+                                <input type="text" id="versionSearch" placeholder="Search versions...">
+                            </div>
+                            
+                            <div class="version-list" id="versionList">
+                                <!-- Version items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back to Manufacturers Button (Initially Hidden) -->
+                    <div class="d-none" id="backToManufacturersSection">
+                        <div class="d-grid mb-3">
+                            <button id="backToManufacturersBtn" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Manufacturers
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <button id="viewPdfBtn" class="btn btn-modern" disabled>
+                            <i class="fas fa-eye me-2"></i>View PDF
+                        </button>
+                        <button id="downloadPdfBtn" class="btn btn-modern btn-success-modern" disabled>
+                            <i class="fas fa-download me-2"></i>Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Viewer Column -->
+            <div class="col-lg-8 pdf-column">
+                <!-- Manufacturer Selection View (Initially Hidden) -->
+                <div id="manufacturerSelectionView" class="pdf-container d-none">
+                    <div class="manufacturer-selection-header">
+                        <h4><i class="fas fa-industry me-2"></i>Select Manufacturers for <span id="selectedYearDisplay"></span></h4>
+                        <div class="selection-controls">
+                            <button id="selectAllMfgBtn" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-check-square me-1"></i>Select All
+                            </button>
+                            <button id="clearAllMfgBtn" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear All
+                            </button>
+                            <button id="proceedToVersionsBtn" class="btn btn-sm btn-modern" disabled>
+                                <i class="fas fa-arrow-right me-1"></i>Proceed (<span id="selectedCount">0</span>)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="manufacturer-grid-container">
+                        <div class="manufacturer-search-bar">
+                            <input type="text" id="mfgGridSearch" placeholder="Search manufacturers..." class="form-control">
+                        </div>
+                        <div id="manufacturerGrid" class="manufacturer-grid">
+                            <!-- Manufacturer cards will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF Viewer -->
+                <div id="pdfContainer" class="pdf-container d-none">
+                    <iframe id="pdfViewer" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+                
+                <!-- Welcome Message -->
+                <div id="welcomeMessage" class="pdf-container d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <i class="fas fa-file-pdf fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Welcome to Vehicle Documentation Viewer</h4>
+                        <p class="text-muted">Select a year to begin exploring vehicle documentation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let selectedManufacturers = [];
+            let allManufacturers = [];
+            let selectedVersion = null;
+            let selectedYear = null;
+
+            // Year dropdown functionality
+            $('#yearTrigger').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const dropdown = $('#yearDropdown');
+                const trigger = $(this);
+                
+                if (dropdown.hasClass('show')) {
+                    dropdown.removeClass('show');
+                    trigger.removeClass('active');
+                } else {
+                    dropdown.addClass('show');
+                    trigger.addClass('active');
+                    $('#yearSearch').focus();
+                }
+            });
+
+            // Close year dropdown when clicking outside
+            $(document).click(function(e) {
+                if (!$(e.target).closest('.year-dropdown').length) {
+                    $('#yearDropdown').removeClass('show');
+                    $('#yearTrigger').removeClass('active');
+                }
+                // Close version dropdown when clicking outside
+                if (!$(e.target).closest('.version-dropdown').length) {
+                    $('#versionDropdown').removeClass('show');
+                    $('#versionTrigger').removeClass('active');
+                }
+            });
+
+            // Year search functionality
+            $('#yearSearch').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $('.year-item').each(function() {
+                    const text = $(this).text().toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Year item click
+            $(document).on('click', '.year-item', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                $('.year-item').removeClass('selected');
+                $(this).addClass('selected');
+                
+                selectedYear = $(this).attr('data-year');
+                $('#yearText').text(selectedYear);
+                
+                // Close dropdown
+                $('#yearDropdown').removeClass('show');
+                $('#yearTrigger').removeClass('active');
+                
+                // Trigger year change logic
+                handleYearChange(selectedYear);
+            });
+
+            function handleYearChange(year) {
+                if (year) {
+                    console.log('Getting manufacturers for year:', year);
+                    // Reset everything
+                    selectedManufacturers = [];
+                    allManufacturers = [];
+                    selectedVersion = null;
+                    
+                    // Update UI
+                    $('#selectedYearDisplay').text(year);
+                    $('#manufacturerSortSection').removeClass('d-none');
+                    $('#selectedManufacturersSummary').addClass('d-none');
+                    $('#backToManufacturersBeforeVersion').addClass('d-none');
+                    $('#versionDropdownSection').addClass('d-none');
+                    $('#backToManufacturersSection').addClass('d-none');
+                    $('#pdfContainer').addClass('d-none');
+                    $('#welcomeMessage').addClass('d-none');
+                    $('#manufacturerSelectionView').removeClass('d-none');
+                    $('#viewPdfBtn, #downloadPdfBtn').prop('disabled', true);
+                    
+                    // Reset version dropdown
+                    $('#versionText').text('Select Version');
+                    $('#versionDropdown').removeClass('show');
+                    $('#versionTrigger').removeClass('active');
+                    
+                    // Reset sort to date
+                    $('#sortByDate').prop('checked', true);
+                    
+                    // Show loading
+                    $('#manufacturerGrid').html(`
+                        <div class="loading-state" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                            <div class="loading-spinner"></div>
+                            <div>Fetching manufacturers...</div>
+                        </div>
+                    `);
+                    
+                    // Fetch manufacturers
+                    fetchManufacturers(year);
+                } else {
+                    // Reset everything if no year selected
+                    selectedManufacturers = [];
+                    allManufacturers = [];
+                    selectedVersion = null;
+                    $('#manufacturerSortSection').addClass('d-none');
+                    $('#selectedManufacturersSummary').addClass('d-none');
+                    $('#backToManufacturersBeforeVersion').addClass('d-none');
+                    $('#versionDropdownSection').addClass('d-none');
+                    $('#backToManufacturersSection').addClass('d-none');
+                    $('#manufacturerSelectionView').addClass('d-none');
+                    $('#pdfContainer').addClass('d-none');
+                    $('#welcomeMessage').removeClass('d-none');
+                    $('#viewPdfBtn, #downloadPdfBtn').prop('disabled', true);
+                    
+                    // Reset version dropdown
+                    $('#versionText').text('Select Version');
+                    $('#versionDropdown').removeClass('show');
+                    $('#versionTrigger').removeClass('active');
+                }
+            }
+
+            // Sort option change
+            $('input[name="sortOption"]').change(function() {
+                if (selectedYear) {
+                    // Clear current selections
+                    selectedManufacturers = [];
+                    updateSelectedCount();
+                    
+                    // Show loading
+                    $('#manufacturerGrid').html(`
+                        <div class="loading-state" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                            <div class="loading-spinner"></div>
+                            <div>Fetching manufacturers...</div>
+                        </div>
+                    `);
+                    
+                    // Fetch manufacturers with new sort order
+                    fetchManufacturers(selectedYear);
+                }
+            });
+
+            function fetchManufacturers(year) {
+                const sortBy = $('input[name="sortOption"]:checked').val();
+                const url = `/get_manufacturers/${year}?sort=${sortBy}`;
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Received data:', data);
+                        
+                        if (data.error) {
+                            $('#manufacturerGrid').html(`
+                                <div class="loading-state" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                                    <i class="fas fa-exclamation-circle text-danger fa-2x mb-2"></i>
+                                    <div>${data.error}</div>
+                                    <button class="btn btn-sm btn-modern mt-2" onclick="fetchManufacturers(${year})">
+                                        Retry
+                                    </button>
+                                </div>
+                            `);
+                            return;
+                        }
+                        
+                        if (data.manufacturers && data.manufacturers.length > 0) {
+                            // Store all manufacturers
+                            allManufacturers = data.manufacturers;
+                            
+                            // Populate manufacturer grid
+                            populateManufacturerGrid(data.manufacturers, data.sorted_by);
+                            
+                        } else {
+                            $('#manufacturerGrid').html(`
+                                <div class="loading-state" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                                    <i class="fas fa-info-circle text-muted fa-2x mb-2"></i>
+                                    <div>No manufacturers found for ${year}</div>
+                                </div>
+                            `);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching manufacturers:', error);
+                        $('#manufacturerGrid').html(`
+                            <div class="loading-state" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                                <i class="fas fa-exclamation-triangle text-danger fa-2x mb-2"></i>
+                                <div>Network error. Please check your connection.</div>
+                                <button class="btn btn-sm btn-modern mt-2" onclick="fetchManufacturers(${year})">
+                                    Retry
+                                </button>
+                            </div>
+                        `);
+                    });
+            }
+
+            function populateManufacturerGrid(manufacturers, sortedBy) {
+                $('#manufacturerGrid').empty();
+                
+                manufacturers.forEach((manufacturer, index) => {
+                    const manufacturerName = typeof manufacturer === 'string' ? manufacturer : manufacturer.name;
+                    const latestDate = manufacturer.latest_date || null;
+                    
+                    const card = $(`
+                        <div class="manufacturer-card" data-manufacturer="${manufacturerName}">
+                            <div class="manufacturer-card-header">
+                                <div class="manufacturer-card-name">${manufacturerName}</div>
+                                <input type="checkbox" class="manufacturer-card-checkbox" value="${manufacturerName}">
+                            </div>
+                            ${latestDate ? `<div class="manufacturer-card-info">
+                                <div class="manufacturer-card-date">Latest: ${latestDate}</div>
+                            </div>` : ''}
+                            <div class="selected-badge">✓</div>
+                        </div>
+                    `);
+                    
+                    $('#manufacturerGrid').append(card);
+                });
+                
+                // Update count display
+                updateSelectedCount();
+            }
+
+            // Manufacturer card click
+            $(document).on('click', '.manufacturer-card', function(e) {
+                if (e.target.type !== 'checkbox') {
+                    const checkbox = $(this).find('.manufacturer-card-checkbox');
+                    checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
+                }
+            });
+
+            // Manufacturer checkbox change
+            $(document).on('change', '.manufacturer-card-checkbox', function() {
+                const card = $(this).closest('.manufacturer-card');
+                const manufacturerName = $(this).val();
+                
+                if ($(this).prop('checked')) {
+                    card.addClass('selected');
+                    if (!selectedManufacturers.includes(manufacturerName)) {
+                        selectedManufacturers.push(manufacturerName);
+                    }
+                } else {
+                    card.removeClass('selected');
+                    selectedManufacturers = selectedManufacturers.filter(m => m !== manufacturerName);
+                }
+                
+                updateSelectedCount();
+            });
+
+            // Search functionality
+            $('#mfgGridSearch').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $('.manufacturer-card').each(function() {
+                    const text = $(this).find('.manufacturer-card-name').text().toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Select All button
+            $('#selectAllMfgBtn').click(function() {
+                $('.manufacturer-card:visible .manufacturer-card-checkbox').prop('checked', true).trigger('change');
+            });
+
+            // Clear All button
+            $('#clearAllMfgBtn').click(function() {
+                $('.manufacturer-card-checkbox').prop('checked', false).trigger('change');
+            });
+
+            // Proceed to Versions button
+            $('#proceedToVersionsBtn').click(function() {
+                console.log('Proceed button clicked. selectedManufacturers:', selectedManufacturers.length, 'selectedYear:', selectedYear);
+                
+                if (selectedManufacturers.length > 0 && selectedYear) {
+                    // Hide manufacturer selection view
+                    $('#manufacturerSelectionView').addClass('d-none');
+                    
+                    // Hide sort toggle section
+                    $('#manufacturerSortSection').addClass('d-none');
+                    
+                    // Show selected manufacturers summary
+                    $('#selectedManufacturersSummary').removeClass('d-none');
+                    updateSelectedManufacturersSummary();
+                    
+                    // Show back to manufacturers button (before version selection)
+                    $('#backToManufacturersBeforeVersion').removeClass('d-none');
+                    
+                    // Show version selection area
+                    $('#versionDropdownSection').removeClass('d-none');
+                    
+                    // Ensure version dropdown is closed initially
+                    $('#versionDropdown').removeClass('show');
+                    $('#versionTrigger').removeClass('active');
+                    
+                    // Show welcome message in PDF area
+                    $('#welcomeMessage').removeClass('d-none');
+                    $('#welcomeMessage .text-center h4').text('Loading Versions...');
+                    $('#welcomeMessage .text-center p').text('Please wait while we fetch available versions');
+                    
+                    // Fetch versions using selectedYear
+                    fetchVersions(selectedYear, selectedManufacturers);
+                } else {
+                    console.error('Cannot proceed: selectedManufacturers.length =', selectedManufacturers.length, 'selectedYear =', selectedYear);
+                    if (!selectedYear) {
+                        alert('Please select a year first');
+                    }
+                    if (selectedManufacturers.length === 0) {
+                        alert('Please select at least one manufacturer');
+                    }
+                }
+            });
+
+            function updateSelectedCount() {
+                const count = selectedManufacturers.length;
+                $('#selectedCount').text(count);
+                $('#proceedToVersionsBtn').prop('disabled', count === 0);
+            }
+
+            function updateSelectedManufacturersSummary() {
+                const count = selectedManufacturers.length;
+                let text = '';
+                if (count === 1) {
+                    text = `Selected: ${selectedManufacturers[0]}`;
+                } else {
+                    text = `Selected ${count} manufacturers: ${selectedManufacturers.slice(0, 2).join(', ')}${count > 2 ? ` and ${count - 2} more` : ''}`;
+                }
+                $('#selectedMfgText').text(text);
+            }
+
+            function fetchVersions(year, manufacturers) {
+                console.log('fetchVersions called with year:', year, 'manufacturers:', manufacturers);
+                
+                fetch(`/get_versions/${year}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ manufacturers: manufacturers })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Versions response:', data);
+                    
+                    if (data.error) {
+                        $('#versionList').html(`
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ${data.error}
+                            </div>
+                        `);
+                        return;
+                    }
+                    
+                    // Populate version list
+                    $('#versionList').empty();
+                    $('#versionText').text('Select Version'); // Reset dropdown text
+                    selectedVersion = null; // Clear previous selection
+                    $('#viewPdfBtn, #downloadPdfBtn').prop('disabled', true); // Disable buttons
+                    
+                    // Ensure dropdown is closed
+                    $('#versionDropdown').removeClass('show');
+                    $('#versionTrigger').removeClass('active');
+                    
+                    if (data.versions && data.versions.length > 0) {
+                        console.log('Loading', data.versions.length, 'versions');
+                        
+                        data.versions.forEach(version => {
+                            const versionData = {
+                                manufacturer: version.manufacturer,
+                                name: version.name
+                            };
+                            
+                            const versionItem = $(`
+                                <div class="version-item" data-version='${JSON.stringify(versionData)}'>
+                                    <div class="version-item-name">${version.manufacturer} - ${version.date}</div>
+                                </div>
+                            `);
+                            
+                            $('#versionList').append(versionItem);
+                        });
+                        
+                        // Update welcome message
+                        $('#welcomeMessage .text-center h4').text('Select a Version');
+                        $('#welcomeMessage .text-center p').text(`Found ${data.versions.length} versions from ${manufacturers.length} manufacturer(s)`);
+                        
+                    } else {
+                        console.log('No versions found');
+                        $('#versionList').html(`
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No versions found for selected manufacturers
+                            </div>
+                        `);
+                        
+                        $('#welcomeMessage .text-center h4').text('No Versions Found');
+                        $('#welcomeMessage .text-center p').text('No versions available for the selected manufacturers');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    $('#versionList').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error fetching versions. Please try again.
+                        </div>
+                    `);
+                });
+            }
+
+            // Version item click
+            $(document).on('click', '.version-item', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Version item clicked:', $(this).find('.version-item-name').text());
+                
+                $('.version-item').removeClass('selected');
+                $(this).addClass('selected');
+                
+                selectedVersion = JSON.parse($(this).attr('data-version'));
+                
+                // Get the version display name (manufacturer - date)
+                const versionName = $(this).find('.version-item-name').text();
+                
+                console.log('Selected version:', selectedVersion);
+                console.log('Version display name:', versionName);
+                
+                // Update version trigger text to show manufacturer and date as main text
+                $('#versionText').text(versionName);
+                
+                // Close dropdown immediately
+                $('#versionDropdown').removeClass('show');
+                $('#versionTrigger').removeClass('active');
+                
+                // Enable action buttons
+                $('#viewPdfBtn, #downloadPdfBtn').prop('disabled', false);
+                
+                // Automatically load PDF
+                loadPDF();
+            });
+
+            // Version dropdown functionality
+            $('#versionTrigger').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const dropdown = $('#versionDropdown');
+                const trigger = $(this);
+                const versionItems = $('.version-item');
+                
+                console.log('Version trigger clicked, dropdown currently has show class:', dropdown.hasClass('show'));
+                console.log('Number of version items:', versionItems.length);
+                
+                // Don't open if no versions are loaded
+                if (versionItems.length === 0) {
+                    console.log('No versions loaded, not opening dropdown');
+                    return;
+                }
+                
+                if (dropdown.hasClass('show')) {
+                    dropdown.removeClass('show');
+                    trigger.removeClass('active');
+                    console.log('Closing dropdown');
+                } else {
+                    dropdown.addClass('show');
+                    trigger.addClass('active');
+                    $('#versionSearch').focus();
+                    console.log('Opening dropdown');
+                }
+            });
+
+            // Version search functionality
+            $('#versionSearch').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $('.version-item').each(function() {
+                    const text = $(this).text().toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            function loadPDF() {
+                if (selectedVersion && selectedYear) {
+                    const pdfUrl = `/get_pdf/${selectedYear}?manufacturer=${encodeURIComponent(selectedVersion.manufacturer)}&version=${encodeURIComponent(selectedVersion.name)}`;
+                    
+                    $('#pdfContainer').removeClass('d-none');
+                    $('#welcomeMessage').addClass('d-none');
+                    $('#backToManufacturersBeforeVersion').addClass('d-none'); // Hide the before-version button
+                    $('#backToManufacturersSection').removeClass('d-none'); // Show the after-PDF button
+                    $('#pdfViewer').attr('src', pdfUrl);
+                }
+            }
+
+            // View PDF button (backup)
+            $('#viewPdfBtn').click(function() {
+                loadPDF();
+            });
+
+            // Download PDF button
+            $('#downloadPdfBtn').click(function() {
+                if (selectedVersion && selectedYear) {
+                    const pdfUrl = `/get_pdf/${selectedYear}`;
+                    
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = pdfUrl;
+                    
+                    const manufacturerInput = document.createElement('input');
+                    manufacturerInput.type = 'hidden';
+                    manufacturerInput.name = 'manufacturer';
+                    manufacturerInput.value = selectedVersion.manufacturer;
+                    
+                    const versionInput = document.createElement('input');
+                    versionInput.type = 'hidden';
+                    versionInput.name = 'version';
+                    versionInput.value = selectedVersion.name;
+                    
+                    form.appendChild(manufacturerInput);
+                    form.appendChild(versionInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                    document.body.removeChild(form);
+                }
+            });
+
+            // Make fetchManufacturers available globally for retry buttons
+            window.fetchManufacturers = fetchManufacturers;
+
+            // Notification function (disabled)
+            function showNotification(message, type = 'success') {
+                // Notifications disabled to prevent navbar interference
+                console.log(`${type.toUpperCase()}: ${message}`);
+                return;
+            }
+
+            // Back to Manufacturers button (before version selection)
+            $('#backToManufacturersBeforeVersionBtn').click(function() {
+                goBackToManufacturers();
+            });
+
+            // Back to Manufacturers button (after PDF selection)
+            $('#backToManufacturersBtn').click(function() {
+                goBackToManufacturers();
+            });
+
+            // Common function to go back to manufacturers
+            function goBackToManufacturers() {
+                // Reset selections
+                selectedManufacturers = [];
+                selectedVersion = null;
+                
+                // Reset UI elements
+                $('.manufacturer-card-checkbox').prop('checked', false);
+                $('.manufacturer-card').removeClass('selected');
+                $('#selectedCount').text('0');
+                $('#proceedToVersionsBtn').prop('disabled', true);
+                $('#versionText').text('Select Version');
+                $('#viewPdfBtn, #downloadPdfBtn').prop('disabled', true);
+                
+                // Close and hide version dropdown
+                $('#versionDropdown').removeClass('show');
+                $('#versionTrigger').removeClass('active');
+                
+                // Hide current views
+                $('#selectedManufacturersSummary').addClass('d-none');
+                $('#backToManufacturersBeforeVersion').addClass('d-none');
+                $('#versionDropdownSection').addClass('d-none');
+                $('#pdfContainer').addClass('d-none');
+                $('#backToManufacturersSection').addClass('d-none');
+                $('#welcomeMessage').addClass('d-none');
+                
+                // Show manufacturer selection view
+                $('#manufacturerSelectionView').removeClass('d-none');
+                
+                // Show sort toggle section again
+                $('#manufacturerSortSection').removeClass('d-none');
+                
+                // Update selected year display
+                $('#selectedYearDisplay').text(selectedYear);
+            }
+        });
+    </script>
+</body>
+</html> 
